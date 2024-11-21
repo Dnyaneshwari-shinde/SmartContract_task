@@ -4,9 +4,9 @@ pragma solidity 0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Clementine is Ownable {
-    string public name = "CLMN";       
-    string public symbol = "CLMN";        
-    uint8 public decimals = 18;         
+    string public constant name = "CLMN";       
+    string public constant symbol = "CLMN";        
+    uint8 public constant decimals = 18;         
     uint256 public totalSupply = 3000000000 * (10 ** uint256(decimals));
 
     mapping(address => uint256) private balances; 
@@ -19,8 +19,15 @@ contract Clementine is Ownable {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-
-    constructor(address ecosystem, address team, address marketing, address earlyAdopters, address presale1, address companyReserve, address _owner) Ownable(_owner) {
+    constructor(
+        address ecosystem,
+        address team,
+        address marketing,
+        address earlyAdopters,
+        address presale1,
+        address companyReserve,
+        address _owner
+    ) Ownable(_owner) {
         uint256 oneMonth = 30 * 24 * 60 * 60; // 1 month in sec.
         uint256 oneYear = 365 * 24 * 60 * 60; // 1 year in sec.
 
@@ -47,6 +54,7 @@ contract Clementine is Ownable {
         require(unlockedTokens > 0, "No tokens available for claiming");
 
         lockedBalances[msg.sender] -= unlockedTokens;
+        balances[msg.sender] += unlockedTokens;  // Move to the sender’s balance after unlock
         emit Transfer(address(this), msg.sender, unlockedTokens);
     }
 
@@ -56,7 +64,7 @@ contract Clementine is Ownable {
         uint256 duration = vestingDuration[beneficiary];
 
         if (block.timestamp < start) return 0; // Still in lock period
-        if (duration == 0 || block.timestamp >= start + duration) return lockedAmount; // unlocked
+        if (duration == 0 || block.timestamp >= start + duration) return lockedAmount; // Fully unlocked
 
         uint256 elapsedTime = block.timestamp - start;
         return (lockedAmount * elapsedTime) / duration;
@@ -68,9 +76,10 @@ contract Clementine is Ownable {
 
     function transfer(address _to, uint256 _amount) public returns (bool) {
         require(_to != address(0), "Transfer to zero address");
-        require(balances[msg.sender] >= _amount, "Insufficient balance");
+        uint256 senderBalance = balances[msg.sender]; // Cache the balance
+        require(senderBalance >= _amount, "Insufficient balance");
 
-        balances[msg.sender] -= _amount;
+        balances[msg.sender] = senderBalance - _amount;  // Update in one step
         balances[_to] += _amount;
         emit Transfer(msg.sender, _to, _amount);
         return true;
@@ -94,12 +103,14 @@ contract Clementine is Ownable {
         uint256 _amount
     ) public returns (bool) {
         require(_to != address(0), "Transfer to zero address");
-        require(balances[_from] >= _amount, "Insufficient balance");
-        require(allowances[_from][msg.sender] >= _amount, "Allowance exceeded");
+        uint256 fromBalance = balances[_from];  // Cache the balance
+        uint256 spenderAllowance = allowances[_from][msg.sender]; // Cache the allowance
+        require(fromBalance >= _amount, "Insufficient balance");
+        require(spenderAllowance >= _amount, "Allowance exceeded");
 
-        balances[_from] -= _amount;
+        balances[_from] = fromBalance - _amount;  // Update in one step
         balances[_to] += _amount;
-        allowances[_from][msg.sender] -= _amount;
+        allowances[_from][msg.sender] = spenderAllowance - _amount;
         emit Transfer(_from, _to, _amount);
         return true;
     }
