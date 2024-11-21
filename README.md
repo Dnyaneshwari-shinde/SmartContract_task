@@ -1,1 +1,1 @@
-Simple ERC-20 smart contract 
+# ERC-20 smart contract 
