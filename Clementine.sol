@@ -24,12 +24,13 @@ contract Clementine is Ownable {
         uint256 oneMonth = 30 * 24 * 60 * 60; // 1 month in sec.
         uint256 oneYear = 365 * 24 * 60 * 60; // 1 year in sec.
 
-        _tokendistribution(ecosystem, 450_000_000, 6 * oneMonth, 3 * oneYear);
-        _tokendistribution(team, 150_000_000, 12 * oneMonth, 2 * oneYear);
-        _tokendistribution(marketing, 300_000_000, oneMonth, oneYear);
-        _tokendistribution(earlyAdopters, 300_000_000, 0, 0); // TGE unlock
-        _tokendistribution(presale1, 600_000_000, 0, 0); // TGE unlock
-        balances[companyReserve] = 660_000_000 * (10 ** uint256(decimals)); // Reserve allocation
+        _tokendistribution(ecosystem, 450000000, 6 * oneMonth, 3 * oneYear);
+        _tokendistribution(team, 150000000, 12 * oneMonth, 2 * oneYear);
+        _tokendistribution(marketing, 300000000, oneMonth, oneYear);
+        _tokendistribution(earlyAdopters, 300000000, 0, 0); // TGE unlock
+        _tokendistribution(presale1, 600000000, 0, 0); // TGE unlock
+        balances[companyReserve] = 660000000 * (10 ** uint256(decimals)); // Reserve allocation
+        emit Transfer(address(0), msg.sender, 660000000 * (10 ** uint256(decimals)));
     }
 
     function _tokendistribution(address beneficiary, uint256 amount, uint256 lockPeriod, uint256 vestingPeriod) private {
